@@ -10,9 +10,7 @@ Feel free to share.
 
 ## Motivation
 
-If you’ve been following my recent posts about
-[Kotlin](http://kotlinlang.org), you’ve probably noticed me mentioning
-**Domain Specific Languages (DSL)** already. **Kotlin** as a programming
+If you’ve been following my recent posts about [Kotlin](http://kotlinlang.org), you’ve probably noticed me mentioning **Domain Specific Languages (DSL)** already. **Kotlin** as a programming
 language provides some powerful features that allow us to create those
 DSLs. One of these features, I also already introduced, is called
 [Function Literals with Receiver](https://blog.simon-wirtz.de/function-literals-with-receiver-quick-introduction/),
@@ -90,59 +88,59 @@ server need to trust each other.
 
 ```java
 
-     public class TLSConfiguration { ... }
-     public class StoreType { ... }
+public class TLSConfiguration { ... }
+public class StoreType { ... }
 
-     public void connectSSL(String host, int port,
-            TLSConfiguration tlsConfiguration) throws IOException {
+public void connectSSL(String host, int port,
+    TLSConfiguration tlsConfiguration) throws IOException {
 
-            String tlsVersion = tlsConfiguration.getProtocol();
-            StoreType keystore = tlsConfiguration.getKeystore();
-            StoreType trustStore = tlsConfiguration.getTruststore();
-            try {
-                SSLContext ctx = SSLContext.getInstance(tlsVersion);
-                TrustManager[] tm = null;
-                KeyManager[] km = null;
-                if (trustStore != null) {
-                    tm = getTrustManagers(trustStore.getFilename(), trustStore.getPassword().toCharArray(),
-                            trustStore.getStoretype(), trustStore.getAlgorithm());
-                }
-                if (keystore != null) {
-                    km = createKeyManagers(keystore.getFilename(), keystore.getPassword(),
-                            keystore.getStoretype(), keystore.getAlgorithm());
-                }
-                ctx.init(km, tm, new SecureRandom());
-                SSLSocketFactory sslSocketFactory = ctx.getSocketFactory();
-                SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(host, port);
-                sslSocket.startHandshake();
-            } catch (Exception e) {
-                throw new IllegalStateException("Not working :-(", e);
-            }
+    String tlsVersion = tlsConfiguration.getProtocol();
+    StoreType keystore = tlsConfiguration.getKeystore();
+    StoreType trustStore = tlsConfiguration.getTruststore();
+    try {
+        SSLContext ctx = SSLContext.getInstance(tlsVersion);
+        TrustManager[] tm = null;
+        KeyManager[] km = null;
+        if (trustStore != null) {
+            tm = getTrustManagers(trustStore.getFilename(), trustStore.getPassword().toCharArray(),
+                    trustStore.getStoretype(), trustStore.getAlgorithm());
         }
-
-
-        private static TrustManager[] getTrustManagers(
-            final String path, final char[] password,
-            final String storeType, final String algorithm) throws Exception {
-
-            TrustManagerFactory fac = TrustManagerFactory.getInstance(algorithm == null ? "SunX509" : algorithm);
-            KeyStore ks = KeyStore.getInstance(storeType == null ? "JKS" : storeType);
-            Path storeFile = Paths.get(path);
-            ks.load(new FileInputStream(storeFile.toFile()), password);
-            fac.init(ks);
-            return fac.getTrustManagers();
+        if (keystore != null) {
+            km = createKeyManagers(keystore.getFilename(), keystore.getPassword(),
+                    keystore.getStoretype(), keystore.getAlgorithm());
         }
+        ctx.init(km, tm, new SecureRandom());
+        SSLSocketFactory sslSocketFactory = ctx.getSocketFactory();
+        SSLSocket sslSocket = (SSLSocket) sslSocketFactory.createSocket(host, port);
+        sslSocket.startHandshake();
+    } catch (Exception e) {
+        throw new IllegalStateException("Not working :-(", e);
+    }
+}
 
-        private static KeyManager[] createKeyManagers(
-            final String filename, final String password,
-            final String keyStoreType, final String algorithm) throws Exception {
 
-            KeyStore ks = KeyStore.getInstance(keyStoreType == null ? "PKCS12" : keyStoreType);
-            ks.load(new FileInputStream(filename), password.toCharArray());
-            KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm == null ? "SunX509" : algorithm);
-            kmf.init(ks, password.toCharArray());
-            return kmf.getKeyManagers();
-        }
+private static TrustManager[] getTrustManagers(
+    final String path, final char[] password,
+    final String storeType, final String algorithm) throws Exception {
+
+    TrustManagerFactory fac = TrustManagerFactory.getInstance(algorithm == null ? "SunX509" : algorithm);
+    KeyStore ks = KeyStore.getInstance(storeType == null ? "JKS" : storeType);
+    Path storeFile = Paths.get(path);
+    ks.load(new FileInputStream(storeFile.toFile()), password);
+    fac.init(ks);
+    return fac.getTrustManagers();
+}
+
+private static KeyManager[] createKeyManagers(
+    final String filename, final String password,
+    final String keyStoreType, final String algorithm) throws Exception {
+
+    KeyStore ks = KeyStore.getInstance(keyStoreType == null ? "PKCS12" : keyStoreType);
+    ks.load(new FileInputStream(filename), password.toCharArray());
+    KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm == null ? "SunX509" : algorithm);
+    kmf.init(ks, password.toCharArray());
+    return kmf.getKeyManagers();
+}
 ``` 
 
 
@@ -155,39 +153,39 @@ TLS connections.
 ### Set up TLS connection with Kotlin
 
 ```kotlin
-     fun connectSSL(host: String, port: Int, protocols: List<String>, kmConfig: Store?, tmConfig: Store?){
-        val context = createSSLContext(protocols, kmConfig, tmConfig)
-        val sslSocket = context.socketFactory.createSocket(host, port) as SSLSocket
-        sslSocket.startHandshake()
+    fun connectSSL(host: String, port: Int, protocols: List<String>, kmConfig: Store?, tmConfig: Store?){
+    val context = createSSLContext(protocols, kmConfig, tmConfig)
+    val sslSocket = context.socketFactory.createSocket(host, port) as SSLSocket
+    sslSocket.startHandshake()
+}
+
+fun createSSLContext(protocols: List<String>, kmConfig: Store?, tmConfig: Store?): SSLContext {
+    if (protocols.isEmpty()) {
+        throw IllegalArgumentException("At least one protocol must be provided.")
     }
-
-    fun createSSLContext(protocols: List<String>, kmConfig: Store?, tmConfig: Store?): SSLContext {
-        if (protocols.isEmpty()) {
-            throw IllegalArgumentException("At least one protocol must be provided.")
+    return SSLContext.getInstance(protocols[0]).apply {
+        val keyManagerFactory = kmConfig?.let { conf ->
+            val defaultAlgorithm = KeyManagerFactory.getDefaultAlgorithm()
+            KeyManagerFactory.getInstance(conf.algorithm ?: defaultAlgorithm).apply {
+                init(loadKeyStore(conf), conf.password)
+            }
         }
-        return SSLContext.getInstance(protocols[0]).apply {
-            val keyManagerFactory = kmConfig?.let { conf ->
-                val defaultAlgorithm = KeyManagerFactory.getDefaultAlgorithm()
-                KeyManagerFactory.getInstance(conf.algorithm ?: defaultAlgorithm).apply {
-                    init(loadKeyStore(conf), conf.password)
-                }
+        val trustManagerFactory = tmConfig?.let { conf ->
+            val defaultAlgorithm = TrustManagerFactory.getDefaultAlgorithm()
+            TrustManagerFactory.getInstance(conf.algorithm ?: defaultAlgorithm).apply {
+                init(loadKeyStore(conf))
             }
-            val trustManagerFactory = tmConfig?.let { conf ->
-                val defaultAlgorithm = TrustManagerFactory.getDefaultAlgorithm()
-                TrustManagerFactory.getInstance(conf.algorithm ?: defaultAlgorithm).apply {
-                    init(loadKeyStore(conf))
-                }
-            }
-
-            init(keyManagerFactory?.keyManagers, trustManagerFactory?.trustManagers,
-                SecureRandom())
         }
 
+        init(keyManagerFactory?.keyManagers, trustManagerFactory?.trustManagers,
+            SecureRandom())
     }
 
-    fun loadKeyStore(store: Store) = KeyStore.getInstance(store.fileType).apply {
-        load(FileInputStream(store.name), store.password)
-    }
+}
+
+fun loadKeyStore(store: Store) = KeyStore.getInstance(store.fileType).apply {
+    load(FileInputStream(store.name), store.password)
+}
 ```
 
 
@@ -224,26 +222,26 @@ we’ll call `ProviderConfiguration` because it will configure our
 
 ```kotlin
 
-    class ProviderConfiguration {
+class ProviderConfiguration {
 
-        var kmConfig: Store? = null
-        var tmConfig: Store? = null
-        var socketConfig: SocketConfiguration? = null
+    var kmConfig: Store? = null
+    var tmConfig: Store? = null
+    var socketConfig: SocketConfiguration? = null
 
-        fun open(name: String) = Store(name)
+    fun open(name: String) = Store(name)
 
-        fun sockets(configInit: SocketConfiguration.() -> Unit) {
-            this.socketConfig = SocketConfiguration().apply(configInit)
-        }
-
-        fun keyManager(store: () -> Store) {
-            this.kmConfig = store()
-        }
-
-        fun trustManager(store: () -> Store) {
-            this.tmConfig = store()
-        }
+    fun sockets(configInit: SocketConfiguration.() -> Unit) {
+        this.socketConfig = SocketConfiguration().apply(configInit)
     }
+
+    fun keyManager(store: () -> Store) {
+        this.kmConfig = store()
+    }
+
+    fun trustManager(store: () -> Store) {
+        this.tmConfig = store()
+    }
+}
 
 ```
 
@@ -267,27 +265,27 @@ Let’s also review the classes `Store` and `SocketConfiguration` now.
 
 ```kotlin
 
-    data class SocketConfiguration(
-        var cipherSuites: List<String>? = null, var timeout: Int? = null,
-        var clientAuth: Boolean = false)
+data class SocketConfiguration(
+    var cipherSuites: List<String>? = null, var timeout: Int? = null,
+    var clientAuth: Boolean = false)
 
-    class Store(val name: String) {
-        var algorithm: String? = null
-        var password: CharArray? = null
-        var fileType: String = "JKS"
+class Store(val name: String) {
+    var algorithm: String? = null
+    var password: CharArray? = null
+    var fileType: String = "JKS"
 
-        infix fun withPass(pass: String) = apply {
-            password = pass.toCharArray()
-        }
-
-        infix fun beingA(type: String) = apply {
-            fileType = type
-        }
-
-        infix fun using(algo: String) = apply {
-            algorithm = algo
-        }
+    infix fun withPass(pass: String) = apply {
+        password = pass.toCharArray()
     }
+
+    infix fun beingA(type: String) = apply {
+        fileType = type
+    }
+
+    infix fun using(algo: String) = apply {
+        algorithm = algo
+    }
+}
 ```
 
 The first one is as easy as it could get, a simple data class with, once
@@ -305,32 +303,32 @@ classes we just saw.
 
 ```kotlin
 
-    class TLSSocketFactoryProvider(init: ProviderConfiguration.() -> Unit) {
+class TLSSocketFactoryProvider(init: ProviderConfiguration.() -> Unit) {
 
-        private val config: ProviderConfiguration = ProviderConfiguration().apply(init)
+private val config: ProviderConfiguration = ProviderConfiguration().apply(init)
 
-        fun createSocketFactory(protocols: List<String>)
-        : SSLSocketFactory = with(createSSLContext(protocols)) {
-            return ExtendedSSLSocketFactory(
-                socketFactory, protocols.toTypedArray(),
-                getOptionalCipherSuites() ?: socketFactory.defaultCipherSuites)
-        }
+fun createSocketFactory(protocols: List<String>)
+: SSLSocketFactory = with(createSSLContext(protocols)) {
+    return ExtendedSSLSocketFactory(
+        socketFactory, protocols.toTypedArray(),
+        getOptionalCipherSuites() ?: socketFactory.defaultCipherSuites)
+}
 
-        fun createServerSocketFactory(protocols: List<String>)
-        : SSLServerSocketFactory = with(createSSLContext(protocols)) {
-            return ExtendedSSLServerSocketFactory(
-                serverSocketFactory, protocols.toTypedArray(),
-                getOptionalCipherSuites() ?: serverSocketFactory.defaultCipherSuites)
-        }
+fun createServerSocketFactory(protocols: List<String>)
+: SSLServerSocketFactory = with(createSSLContext(protocols)) {
+    return ExtendedSSLServerSocketFactory(
+        serverSocketFactory, protocols.toTypedArray(),
+        getOptionalCipherSuites() ?: serverSocketFactory.defaultCipherSuites)
+}
 
-        private fun getOptionalCipherSuites() =
-            config.socketConfig?.cipherSuites?.toTypedArray()
+private fun getOptionalCipherSuites() =
+    config.socketConfig?.cipherSuites?.toTypedArray()
 
 
-        private fun createSSLContext(protocols: List<String>): SSLContext {
-           //... already known
-        }
-    }
+private fun createSSLContext(protocols: List<String>): SSLContext {
+    //... already known
+}
+}
 ``` 
 
 This one isn’t hard to understand either as most of its content isn’t
@@ -347,21 +345,21 @@ In order to assemble this all together, a top-level function has to be
 created, which will be the client’s entry point to the DSL world then.
 
 ```kotlin
-    val defaultTLSProtocols = listOf("TLSv1.2")
+val defaultTLSProtocols = listOf("TLSv1.2")
 
-    fun serverSocketFactory(
-        protocols: List<String> = defaultTLSProtocols,
-        configuration: ProviderConfiguration.() -> Unit = {}) =
-            with(TLSSocketFactoryProvider(configuration)) {
-                this.createServerSocketFactory(protocols)
-            }
+fun serverSocketFactory(
+    protocols: List<String> = defaultTLSProtocols,
+    configuration: ProviderConfiguration.() -> Unit = {}) =
+        with(TLSSocketFactoryProvider(configuration)) {
+            this.createServerSocketFactory(protocols)
+        }
 
-    fun socketFactory(
-        protocols: List<String> = defaultTLSProtocols,
-        configuration: ProviderConfiguration.() -> Unit = {}) =
-            with(TLSSocketFactoryProvider(configuration)) {
-                this.createSocketFactory(protocols)
-            }
+fun socketFactory(
+    protocols: List<String> = defaultTLSProtocols,
+    configuration: ProviderConfiguration.() -> Unit = {}) =
+        with(TLSSocketFactoryProvider(configuration)) {
+            this.createSocketFactory(protocols)
+        }
 
 ``` 
 
@@ -374,24 +372,24 @@ Now we can easily use it to create new socket factories.
 
 ```kotlin
 
-     val fac = socketFactory {
-            keyManager {
-                open("certsandstores/clientkeystore") withPass "123456" beingA "jks"
-            }
-            trustManager {
-                open("certsandstores/myTruststore") withPass "123456" beingA "jks"
-            }
-            sockets {
-                cipherSuites =
-                listOf("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-                        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
-                        "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-                        "TLS_DHE_RSA_WITH_AES_256_CBC_SHA")
-                timeout = 10_000
-            }
-        }
+val fac = socketFactory {
+    keyManager {
+        open("certsandstores/clientkeystore") withPass "123456" beingA "jks"
+    }
+    trustManager {
+        open("certsandstores/myTruststore") withPass "123456" beingA "jks"
+    }
+    sockets {
+        cipherSuites =
+        listOf("TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+                "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA")
+        timeout = 10_000
+    }
+}
 
-        val socket = fac.createSocket("192.168.3.200", 9443)
+val socket = fac.createSocket("192.168.3.200", 9443)
 
 ```
 
@@ -416,15 +414,15 @@ use loops, `if`s, `when`s etc. whenever you need to:
 
 ```kotlin
 
-     val fac = socketFactory {
-            trustManager {
-                if (System.currentTimeMillis() % 2 == 0L) {
-                    open("any") withPass "123456" beingA "jks"
-                } else {
-                    open("other") withPass "123456" beingA "jks"
-                }
-            }
+val fac = socketFactory {
+    trustManager {
+        if (System.currentTimeMillis() % 2 == 0L) {
+            open("any") withPass "123456" beingA "jks"
+        } else {
+            open("other") withPass "123456" beingA "jks"
         }
+    }
+}
 ``` 
 
 ## TlsLibrary on GitHub
