@@ -72,6 +72,8 @@ features quite often in my day-to-day work. One reason for this probably
 is the great number of possible API combinations, another its verbosity
 needed to set up such connections. Have a look at the class hierarchy:
 
+![JSSE](jsse.jpg)
+
 
 Quite a few classes, don’t you think? You often start at the very
 beginning by creating a *trust* and a *key* store and use these together
