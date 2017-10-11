@@ -1,5 +1,13 @@
 # Domain Specific Languages with Kotlin
 
+_Disclaimer: My articles are published under 
+<a href="https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode" target="_blank">"Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)"</a>._
+
+© Copyright: Simon Wirtz, 2017
+https://blog.simon-wirtz.de/kotlin-on-the-jvm-byte-code-generation/
+
+Feel free to share.
+
 ## Motivation
 
 If you’ve been following my recent posts about
@@ -24,7 +32,6 @@ little library that can support me with that task, hiding away all the
 difficulties and of course the boilerplate.
 
 ## Domain Specific Language
-
 
 The term *Domain Specific Language* is used very broadly nowadays, but
 in the case of what I’ll be talking about it’s referring to some kind of
@@ -72,7 +79,6 @@ features quite often in my day-to-day work. One reason for this probably
 is the great number of possible API combinations, another its verbosity
 needed to set up such connections. Have a look at the class hierarchy:
 
-![](jsse.jpg)
 
 Quite a few classes, don’t you think? You often start at the very
 beginning by creating a *trust* and a *key* store and use these together
@@ -88,7 +94,7 @@ It needed more than 100 lines of code to do this. It’s a connection with
 mutual authentication, which is needed if both parties, client and
 server need to trust each other.
 
-~~~ java
+```java
 
      public class TLSConfiguration { ... }
      public class StoreType { ... }
@@ -143,7 +149,7 @@ server need to trust each other.
             kmf.init(ks, password.toCharArray());
             return kmf.getKeyManagers();
         }
-~~~ 
+``` 
 
 
 Okay, it’s Java right? Of course it’s verbose with lots of checked
@@ -154,7 +160,7 @@ TLS connections.
 
 ### Set up TLS connection with Kotlin
 
-~~~ kotlin
+``` kotlin
      fun connectSSL(host: String, port: Int, protocols: List<String>, kmConfig: Store?, tmConfig: Store?){
         val context = createSSLContext(protocols, kmConfig, tmConfig)
         val sslSocket = context.socketFactory.createSocket(host, port) as SSLSocket
@@ -188,7 +194,7 @@ TLS connections.
     fun loadKeyStore(store: Store) = KeyStore.getInstance(store.fileType).apply {
         load(FileInputStream(store.name), store.password)
     }
-~~~
+```
 
 
 You might notice, that I haven’t done a one-to-one conversion here,
@@ -223,7 +229,7 @@ necessary. This can easily be wrapped in a configuration class, which
 we’ll call `ProviderConfiguration` because it will configure our
 `TLSSocketFactoryProvider` later on.
 
-~~~ kotlin
+``` kotlin
 
     class ProviderConfiguration {
 
@@ -246,7 +252,7 @@ we’ll call `ProviderConfiguration` because it will configure our
         }
     }
 
-~~~
+```
 
 We’ve got 3 nullable properties here, each of which are `null` by
 default, because the client might not want to configure everything for
@@ -266,7 +272,7 @@ property.
 
 Let’s also review the classes `Store` and `SocketConfiguration` now.
 
-~~~ kotlin
+``` kotlin
 
     data class SocketConfiguration(
         var cipherSuites: List<String>? = null, var timeout: Int? = null,
@@ -289,7 +295,7 @@ Let’s also review the classes `Store` and `SocketConfiguration` now.
             algorithm = algo
         }
     }
-~~~
+```
 
 The first one is as easy as it could get, a simple data class with, once
 again, nullable properties. `Store` is a bit unique though as it only
@@ -304,7 +310,7 @@ a look at the client side, let’s first observe the
 `TLSSocketFactoryProvider`, which wants to be configured with the
 classes we just saw.
 
-~~~ kotlin
+``` kotlin
 
     class TLSSocketFactoryProvider(init: ProviderConfiguration.() -> Unit) {
 
@@ -332,7 +338,7 @@ classes we just saw.
            //... already known
         }
     }
-~~~ 
+``` 
 
 This one isn’t hard to understand either as most of its content isn’t
 displayed here since we already know it from
@@ -347,7 +353,7 @@ are `createSocketFactory` and `createServerSocketFactory` respectively.
 In order to assemble this all together, a top-level function has to be
 created, which will be the client’s entry point to the DSL world then.
 
-~~~ kotlin
+``` kotlin
     val defaultTLSProtocols = listOf("TLSv1.2")
 
     fun serverSocketFactory(
@@ -364,7 +370,7 @@ created, which will be the client’s entry point to the DSL world then.
                 this.createSocketFactory(protocols)
             }
 
-~~~ 
+``` 
 
 Two simple functions delegating a function literal with
 `ProviderConfiguration` receiver to a created instance of
@@ -373,7 +379,7 @@ Two simple functions delegating a function literal with
 
 Now we can easily use it to create new socket factories.
 
-~~~ kotlin
+``` kotlin
 
      val fac = socketFactory {
             keyManager {
@@ -394,7 +400,7 @@ Now we can easily use it to create new socket factories.
 
         val socket = fac.createSocket("192.168.3.200", 9443)
 
-~~~
+```
 
 Let’s recap: Top-level function `socketFactory` expects a lambda, which
 has access to `ProviderConfiguration` members since it’s the lambda’s
@@ -415,7 +421,7 @@ more feature, such a DSL provides, is of course the possibility to use
 easily read values from a file for creating your store configurations or
 use loops, \`\`if\`\`s, \`\`when\`\`s etc. whenever you need to:
 
-~~~ kotlin
+``` kotlin
 
      val fac = socketFactory {
             trustManager {
@@ -426,7 +432,7 @@ use loops, \`\`if\`\`s, \`\`when\`\`s etc. whenever you need to:
                 }
             }
         }
-~~~ 
+``` 
 
 ## TlsLibrary on GitHub
 
