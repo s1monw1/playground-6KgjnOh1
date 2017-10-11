@@ -15,12 +15,9 @@ If you’ve been following my recent posts about
 **Domain Specific Languages (DSL)** already. **Kotlin** as a programming
 language provides some powerful features that allow us to create those
 DSLs. One of these features, I also already introduced, is called
-[Function Literals with
-Receiver](https://blog.simon-wirtz.de/function-literals-with-receiver-quick-introduction/),
-others are the [invoke
-convention](https://blog.simon-wirtz.de/kotlin-conventions-operator-overloading/)
-or [infix
-notation](https://kotlinlang.org/docs/reference/functions.html#infix-notation).
+[Function Literals with Receiver](https://blog.simon-wirtz.de/function-literals-with-receiver-quick-introduction/),
+others are the [invoke convention](https://blog.simon-wirtz.de/kotlin-conventions-operator-overloading/)
+or [infix notation](https://kotlinlang.org/docs/reference/functions.html#infix-notation).
 
 In this post we’ll have a look at the concept of DSLs and certainly see
 how we can create one with Kotlin in a relatively simple example:  
@@ -36,8 +33,7 @@ difficulties and of course the boilerplate.
 The term *Domain Specific Language* is used very broadly nowadays, but
 in the case of what I’ll be talking about it’s referring to some kind of
 **"mini-language"** used to describe the construction of a specific
-domain object in a semi-declarative way. Examples of DSLs are [Groovy
-builders](http://www.groovy-lang.org/dsls.html#_nodebuilder) for
+domain object in a semi-declarative way. Examples of DSLs are [Groovy builders](http://www.groovy-lang.org/dsls.html#_nodebuilder) for
 creating XML, HTML or UI data. The best example in my opinion though is
 [Gradle](https://en.wikipedia.org/wiki/Gradle), which also uses
 Groovy-based DSLs for describing software build automations [1].  
@@ -69,8 +65,7 @@ you’re not familiar with it, let’s introduce it shortly.
 
 ### Java Secure Socket Extension
 
-[Java Secure Socket Extension
-(JSSE)](http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html)
+[Java Secure Socket Extension (JSSE)](http://docs.oracle.com/javase/8/docs/technotes/guides/security/jsse/JSSERefGuide.html)
 is a library that’s part of Java SE since 1.4 providing functionalities
 for creating secure connections via SSL/TLS, including client/server
 authentication, data encryption and message integrity. As most of you, I
@@ -88,7 +83,6 @@ it does not sound too difficult, but let’s see it in action, the Java
 way…
 
 ### Set up TLS connection with Java
-
 
 It needed more than 100 lines of code to do this. It’s a connection with
 mutual authentication, which is needed if both parties, client and
@@ -200,8 +194,7 @@ TLS connections.
 You might notice, that I haven’t done a one-to-one conversion here,
 which is because Kotlin provides a few functions in its stdlib, which
 help a lot here. This small piece of source code contains 4 usages of
-`apply`, a method that makes use of [Function Literals with
-Receiver](https://blog.simon-wirtz.de/function-literals-with-receiver-quick-introduction/).
+`apply`, a method that makes use of [Function Literals with Receiver](https://blog.simon-wirtz.de/function-literals-with-receiver-quick-introduction/).
 It allows us to omit particular statements by creating a context to be
 reused inside the lambda block passed to it, just like a DSL does as
 we’ll see in a minute. The object on which `apply` is called becomes the
@@ -304,7 +297,7 @@ properties. We use `apply` here, because it returns the applied objects
 afterwards. This enables us to chain the setters easily. One thing I
 haven’t mentioned so far is the function `open(name: String)` in
 `ProviderConfiguration`. This can be used as a factory for
-\`\`Store\`\`s what we’ll see in action soon. This all in combination
+`Store`s what we’ll see in action soon. This all in combination
 allows a neat way of defining our configuration. But before we can have
 a look at the client side, let’s first observe the
 `TLSSocketFactoryProvider`, which wants to be configured with the
@@ -342,12 +335,12 @@ classes we just saw.
 
 This one isn’t hard to understand either as most of its content isn’t
 displayed here since we already know it from
-[formalpara\_title](#socketfackot), which is `createSSLContext` in
+a previous exmaple, which is `createSSLContext` in
 particular. The most important thing in this listing is the constructor.
 It expects a function with a `ProviderConfiguration` as a receiver.
 Internally it creates a new instance of it and calls this function in
 order to initialize the configuration. The configuration is used in
-\`\`TLSSocketFactoryProvider\`\`'s other functions for setting up a
+`TLSSocketFactoryProvider`'s other functions for setting up a
 `SocketFactory` as soon as one of the public methods is called, which
 are `createSocketFactory` and `createServerSocketFactory` respectively.
 In order to assemble this all together, a top-level function has to be
@@ -407,7 +400,7 @@ has access to `ProviderConfiguration` members since it’s the lambda’s
 receiver. Therefore we can call `keyManager()` `trustManager()` and
 `sockets()` without any additional prefix here. `keyManager()` and
 `trustManager()` want us to provide a `Store`, which we create by
-calling `ProviderConfiguration::open` and \`\`Store\`\`'s infix
+calling `ProviderConfiguration::open` and `Store`'s infix
 functions. The `sockets()` method is different as it expects a function
 literal with `SocketConfiguration` receiver, which is a data class and
 therefore provides access on its properties directly.
@@ -419,7 +412,7 @@ This is a very clean definition of a `SocketFactory` if you ask me. One
 more feature, such a DSL provides, is of course the possibility to use
 *any other Kotlin code* available in the receiver’s contexts. You could
 easily read values from a file for creating your store configurations or
-use loops, \`\`if\`\`s, \`\`when\`\`s etc. whenever you need to:
+use loops, `if`s, `when`s etc. whenever you need to:
 
 ```kotlin
 
