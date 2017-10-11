@@ -153,7 +153,7 @@ TLS connections.
 ### Set up TLS connection with Kotlin
 
 ```kotlin
-    fun connectSSL(host: String, port: Int, protocols: List<String>, kmConfig: Store?, tmConfig: Store?){
+fun connectSSL(host: String, port: Int, protocols: List<String>, kmConfig: Store?, tmConfig: Store?){
     val context = createSSLContext(protocols, kmConfig, tmConfig)
     val sslSocket = context.socketFactory.createSocket(host, port) as SSLSocket
     sslSocket.startHandshake()
@@ -265,9 +265,7 @@ Let’s also review the classes `Store` and `SocketConfiguration` now.
 
 ```kotlin
 
-data class SocketConfiguration(
-    var cipherSuites: List<String>? = null, var timeout: Int? = null,
-    var clientAuth: Boolean = false)
+data class SocketConfiguration(var cipherSuites: List<String>? = null, var timeout: Int? = null, var clientAuth: Boolean = false)
 
 class Store(val name: String) {
     var algorithm: String? = null
@@ -305,29 +303,26 @@ classes we just saw.
 
 class TLSSocketFactoryProvider(init: ProviderConfiguration.() -> Unit) {
 
-private val config: ProviderConfiguration = ProviderConfiguration().apply(init)
+    private val config: ProviderConfiguration = ProviderConfiguration().apply(init)
 
-fun createSocketFactory(protocols: List<String>)
-: SSLSocketFactory = with(createSSLContext(protocols)) {
-    return ExtendedSSLSocketFactory(
-        socketFactory, protocols.toTypedArray(),
-        getOptionalCipherSuites() ?: socketFactory.defaultCipherSuites)
-}
+    fun createSocketFactory(protocols: List<String>): SSLSocketFactory = with(createSSLContext(protocols)) {
+        return ExtendedSSLSocketFactory(
+            socketFactory, protocols.toTypedArray(),
+            getOptionalCipherSuites() ?: socketFactory.defaultCipherSuites)
+    }
 
-fun createServerSocketFactory(protocols: List<String>)
-: SSLServerSocketFactory = with(createSSLContext(protocols)) {
-    return ExtendedSSLServerSocketFactory(
-        serverSocketFactory, protocols.toTypedArray(),
-        getOptionalCipherSuites() ?: serverSocketFactory.defaultCipherSuites)
-}
+    fun createServerSocketFactory(protocols: List<String>): SSLServerSocketFactory = with(createSSLContext(protocols)){
+        return ExtendedSSLServerSocketFactory(
+            serverSocketFactory, protocols.toTypedArray(),
+            getOptionalCipherSuites() ?: serverSocketFactory.defaultCipherSuites)
+    }
 
-private fun getOptionalCipherSuites() =
-    config.socketConfig?.cipherSuites?.toTypedArray()
+    private fun getOptionalCipherSuites() = config.socketConfig?.cipherSuites?.toTypedArray()
 
 
-private fun createSSLContext(protocols: List<String>): SSLContext {
-    //... already known
-}
+    private fun createSSLContext(protocols: List<String>): SSLContext {
+        //... already known
+    }
 }
 ``` 
 
@@ -348,15 +343,13 @@ created, which will be the client’s entry point to the DSL world then.
 val defaultTLSProtocols = listOf("TLSv1.2")
 
 fun serverSocketFactory(
-    protocols: List<String> = defaultTLSProtocols,
-    configuration: ProviderConfiguration.() -> Unit = {}) =
+    protocols: List<String> = defaultTLSProtocols, configuration: ProviderConfiguration.() -> Unit = {}) =
         with(TLSSocketFactoryProvider(configuration)) {
             this.createServerSocketFactory(protocols)
         }
 
 fun socketFactory(
-    protocols: List<String> = defaultTLSProtocols,
-    configuration: ProviderConfiguration.() -> Unit = {}) =
+    protocols: List<String> = defaultTLSProtocols, configuration: ProviderConfiguration.() -> Unit = {}) =
         with(TLSSocketFactoryProvider(configuration)) {
             this.createSocketFactory(protocols)
         }
