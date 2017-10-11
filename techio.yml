@@ -1,4 +1,5 @@
-title: Simple Kotlin Template
+title: Kotlin: Domain Specific Languages
 plan:
-- title: Kotlin Snippet
+- title: Domain Specific Languages with Kotlin
   statement: statement.md
+
