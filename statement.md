@@ -160,7 +160,7 @@ TLS connections.
 
 ### Set up TLS connection with Kotlin
 
-``` kotlin
+```kotlin
      fun connectSSL(host: String, port: Int, protocols: List<String>, kmConfig: Store?, tmConfig: Store?){
         val context = createSSLContext(protocols, kmConfig, tmConfig)
         val sslSocket = context.socketFactory.createSocket(host, port) as SSLSocket
@@ -229,7 +229,7 @@ necessary. This can easily be wrapped in a configuration class, which
 we’ll call `ProviderConfiguration` because it will configure our
 `TLSSocketFactoryProvider` later on.
 
-``` kotlin
+```kotlin
 
     class ProviderConfiguration {
 
@@ -272,7 +272,7 @@ property.
 
 Let’s also review the classes `Store` and `SocketConfiguration` now.
 
-``` kotlin
+```kotlin
 
     data class SocketConfiguration(
         var cipherSuites: List<String>? = null, var timeout: Int? = null,
@@ -310,7 +310,7 @@ a look at the client side, let’s first observe the
 `TLSSocketFactoryProvider`, which wants to be configured with the
 classes we just saw.
 
-``` kotlin
+```kotlin
 
     class TLSSocketFactoryProvider(init: ProviderConfiguration.() -> Unit) {
 
@@ -353,7 +353,7 @@ are `createSocketFactory` and `createServerSocketFactory` respectively.
 In order to assemble this all together, a top-level function has to be
 created, which will be the client’s entry point to the DSL world then.
 
-``` kotlin
+```kotlin
     val defaultTLSProtocols = listOf("TLSv1.2")
 
     fun serverSocketFactory(
@@ -379,7 +379,7 @@ Two simple functions delegating a function literal with
 
 Now we can easily use it to create new socket factories.
 
-``` kotlin
+```kotlin
 
      val fac = socketFactory {
             keyManager {
@@ -421,7 +421,7 @@ more feature, such a DSL provides, is of course the possibility to use
 easily read values from a file for creating your store configurations or
 use loops, \`\`if\`\`s, \`\`when\`\`s etc. whenever you need to:
 
-``` kotlin
+```kotlin
 
      val fac = socketFactory {
             trustManager {
